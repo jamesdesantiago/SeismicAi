@@ -51,6 +51,7 @@ def bin_data(df, lat_bins, lon_bins):
 def simple_plot_earthquake_data(df, start_time, end_time):
     df = df.dropna(subset=['magnitude'])
     custom_color_scale = ['#2C0F06', '#67260F', '#7B3413', '#E6B663', '#F0E0C6']
+    title = "___"
     fig = px.scatter_geo(df,
                          lat='latitude',
                          lon='longitude',
