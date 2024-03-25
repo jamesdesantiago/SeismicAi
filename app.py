@@ -4,8 +4,8 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
 import numpy as np
-from openai import OpenAI
 from pandasai import Agent
+from pandasai.llm.openai import OpenAI
 
 # Define the function to fetch seismic data
 def fetch_seismic_data(start_time, end_time):
@@ -128,7 +128,7 @@ with col2:
 if start_time and end_time:
     df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
     # Initiate pandasai instance
-    agent = Agent(df)
+    pandas_ai = PandasAI(client)
 
     if df is not None:
         filtered_df = df[df['magnitude'] > 4]
@@ -141,10 +141,15 @@ with st.sidebar:
         df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
 
     # Chat input
-    user_input = st.chat_input("Ask me about the seismic data...")
+    prompt = st.text_area("Ask me about the seismic data...")
 
-    if user_input:
-        # Update chat history with user input
-        agent.chat(user_input)
+    # Generate output
+    if st.button("Ask a question"):
+        if prompt:
+            # call pandas_ai.run(), passing dataframe and prompt
+            with st.spinner("Generating response..."):
+                st.write(pandas_ai.run(df, prompt))
+        else:
+            st.warning("Please enter a prompt.")
 
 st.caption("Data source: U.S. Geological Survey (USGS) Earthquake Hazards Program")
