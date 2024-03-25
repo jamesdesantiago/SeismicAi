@@ -5,4 +5,3 @@ datetime
 numpy
 openai
 pandasai
-yaml
