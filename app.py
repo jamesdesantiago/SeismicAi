@@ -4,8 +4,8 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
 import numpy as np
-from pandasai import Agent
-from pandasai.llm.openai import OpenAI
+from pandasai import SmartDataframe
+from pandasai.llm import OpenAI
 
 # Define the function to fetch seismic data
 def fetch_seismic_data(start_time, end_time):
@@ -103,7 +103,7 @@ def summarize_df_for_chat(df):
 
     return summary
 
-client = OpenAI(api_key=st.secrets["openai_api_key"])
+llm = OpenAI(api_token=st.secrets["openai_api_key"])
 
 # Initialize chat and data
 if 'chat_history' not in st.session_state:
@@ -128,7 +128,7 @@ with col2:
 if start_time and end_time:
     df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
     # Initiate pandasai instance
-    pandas_ai = PandasAI(client)
+    pandas_ai = SmartDataframe(df, config={"llm": llm})
 
     if df is not None:
         filtered_df = df[df['magnitude'] > 4]
