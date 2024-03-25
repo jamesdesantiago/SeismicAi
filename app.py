@@ -51,7 +51,6 @@ def bin_data(df, lat_bins, lon_bins):
 def simple_plot_earthquake_data(df, start_time, end_time):
     df = df.dropna(subset=['magnitude'])
     custom_color_scale = ['#2C0F06', '#67260F', '#7B3413', '#E6B663', '#F0E0C6']
-    title = f'Global Seismic Activity from {start_time} to {end_time}'
     fig = px.scatter_geo(df,
                          lat='latitude',
                          lon='longitude',
@@ -89,7 +88,7 @@ for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
 
 if prompt := st.chat_input():
-    if not openai_api_key:
+    if not st.secrets['openai_api_key']:
         st.info("Please add your OpenAI API key to continue.")
         st.stop()
 
