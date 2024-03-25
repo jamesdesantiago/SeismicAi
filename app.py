@@ -66,8 +66,12 @@ def simple_plot_earthquake_data(df, start_time, end_time):
 # Streamlit UI
 st.title("Seismic AI")
 
-start_time = st.date_input("Start Date", value=pd.to_datetime("2023-09-01"))
-end_time = st.date_input("End Date", value=pd.to_datetime("2023-09-13"))
+col1, col2 = st.columns(2)
+with col1:
+    start_time = st.date_input("Start Date", value=pd.to_datetime("2023-09-01"))
+
+with col2:
+    end_time = st.date_input("End Date", value=pd.to_datetime("2023-09-13"))
 
 if start_time and end_time:
     df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
