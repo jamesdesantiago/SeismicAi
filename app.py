@@ -142,17 +142,17 @@ with st.sidebar:
     # Chat input
     user_input = st.chat_input("Ask me about the seismic data...")
 
-if user_input:
-    # Update chat history with user input
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
-    
-    # Call OpenAI API with the current chat history including the dataframe summary
-    # Assume 'client' is already initialized with your OpenAI API key
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.chat_history]
-    )
-    
-    # Extract response and update chat history
-    ai_response = response.choices[0].message.content
-    st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
+    if user_input:
+        # Update chat history with user input
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        
+        # Call OpenAI API with the current chat history including the dataframe summary
+        # Assume 'client' is already initialized with your OpenAI API key
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.chat_history]
+        )
+        
+        # Extract response and update chat history
+        ai_response = response.choices[0].message.content
+        st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
