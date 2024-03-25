@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 import numpy as np
 from openai import OpenAI
 from pandasai import Agent
-import yaml
 
 # Define the function to fetch seismic data
 def fetch_seismic_data(start_time, end_time):
