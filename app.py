@@ -102,6 +102,8 @@ def summarize_df_for_chat(df):
 
     return summary
 
+client = OpenAI(api_key=st.secrets["openai_api_key"])
+
 # Initialize chat and data
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
