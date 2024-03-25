@@ -67,38 +67,43 @@ def simple_plot_earthquake_data(df, start_time, end_time):
 def summarize_df_for_chat(df):
     if df.empty:
         return "The dataset is currently empty."
-
+    
     # Basic statistics
     total_events = len(df)
-    min_magnitude = df['magnitude'].min()
-    max_magnitude = df['magnitude'].max()
-    avg_magnitude = df['magnitude'].mean()
-
-    # Geographical spread
-    min_latitude, max_latitude = df['latitude'].min(), df['latitude'].max()
-    min_longitude, max_longitude = df['longitude'].min(), df['longitude'].max()
-
-    # Trend analysis over time - simple approach considering linear trends
+    unique_places = df['Place'].nunique()
+    
+    # Magnitude analysis
+    min_magnitude, max_magnitude, mean_magnitude, std_dev_magnitude = df['magnitude'].min(), df['magnitude'].max(), df['magnitude'].mean(), df['magnitude'].std()
+    magnitude_quantiles = df['magnitude'].quantile([0.25, 0.5, 0.75]).to_dict()
+    
+    # Example places to mention
+    example_places = df['Place'].drop_duplicates().sample(min(5, unique_places)).tolist()
+    example_places_str = ", ".join(example_places)
+    
+    # Temporal trends analysis
     df_sorted = df.sort_values(by='date_time')
     df.loc[:, 'date'] = pd.to_datetime(df['date_time']).dt.date
-    daily_counts = df.groupby('date').size()
-    trend_direction = "increasing" if daily_counts.iloc[-1] - daily_counts.iloc[0] > 0 else "decreasing"
+    start_date, end_date = df['date'].min(), df['date'].max()
     
-    # Magnitude distribution
-    magnitude_distribution = df['magnitude'].value_counts(bins=5).sort_index()
-
+    # Monthly distribution of events
+    monthly_counts = df.groupby(df['date'].dt.to_period("M")).size()
+    most_active_month = monthly_counts.idxmax().strftime('%B %Y')
+    least_active_month = monthly_counts.idxmin().strftime('%B %Y')
+    
+    # Geographic diversity
+    northernmost, southernmost = df.loc[df['latitude'].idxmax(), 'Place'], df.loc[df['latitude'].idxmin(), 'Place']
+    easternmost, westernmost = df.loc[df['longitude'].idxmax(), 'Place'], df.loc[df['longitude'].idxmin(), 'Place']
+    
     # Assembling the summary
     summary = (
-        f"The dataset contains {total_events} seismic events. "
-        f"Magnitudes range from {min_magnitude} to {max_magnitude}, with an average magnitude of {avg_magnitude:.2f}. "
-        f"Geographically, the events span from latitude {min_latitude} to {max_latitude} and longitude {min_longitude} to {max_longitude}. "
-        f"The number of daily seismic events is {trend_direction}. "
-        "Magnitude distribution: "
+        f"The dataset contains a total of {total_events} seismic events spanning from {start_date} to {end_date}, "
+        f"across {unique_places} unique locations, including {example_places_str}. "
+        f"\nMagnitude analysis reveals a range from {min_magnitude} to {max_magnitude} with a mean magnitude of {mean_magnitude:.2f} and a standard deviation of {std_dev_magnitude:.2f}. "
+        f"Quantile distribution is as follows: 25% quantile at {magnitude_quantiles[0.25]}, 50% (median) at {magnitude_quantiles[0.5]}, and 75% quantile at {magnitude_quantiles[0.75]}."
+        f"\nTemporal analysis indicates varied activity over time, with {most_active_month} being the month with the highest number of seismic events, and {least_active_month} the least. "
+        f"\nGeographically, the events showcase significant diversity, occurring from the northernmost location of {northernmost} to the southernmost point of {southernmost}, "
+        f"and from the easternmost location of {easternmost} to the westernmost point of {westernmost}."
     )
-
-    # Adding magnitude distribution to the summary
-    for interval, count in magnitude_distribution.items():
-        summary += f"\n - {interval}: {count} events"
 
     return summary
 
@@ -127,29 +132,30 @@ if start_time and end_time:
         binned_df = bin_data(filtered_df, 50, 50)
         simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
 
-# Update chat history with dataframe summary for the first interaction
-if not st.session_state.chat_history:
-    df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
-    st.session_state.chat_history.append({"role": "system", "content": df_summary})
+with st.sidebar:
+    # Update chat history with dataframe summary for the first interaction
+    if not st.session_state.chat_history:
+        df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
+        st.session_state.chat_history.append({"role": "system", "content": df_summary})
 
-# Display chat history
-for message in st.session_state.chat_history:
-    st.chat_message(message["role"]).write(message["content"])
+    # Display chat history
+    for message in st.session_state.chat_history:
+        st.chat_message(message["role"]).write(message["content"])
 
-# Chat input
-user_input = st.chat_input("Ask me anything about the seismic data...")
+    # Chat input
+    user_input = st.chat_input("Ask me anything about the seismic data...")
 
-if user_input:
-    # Update chat history with user input
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
-    
-    # Call OpenAI API with the current chat history including the dataframe summary
-    # Assume 'client' is already initialized with your OpenAI API key
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.chat_history]
-    )
-    
-    # Extract response and update chat history
-    ai_response = response.choices[0].message.content
-    st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
+    if user_input:
+        # Update chat history with user input
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        
+        # Call OpenAI API with the current chat history including the dataframe summary
+        # Assume 'client' is already initialized with your OpenAI API key
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.chat_history]
+        )
+        
+        # Extract response and update chat history
+        ai_response = response.choices[0].message.content
+        st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
