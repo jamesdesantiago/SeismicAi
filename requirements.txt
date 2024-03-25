@@ -4,3 +4,4 @@ plotly
 datetime
 numpy
 openai
+pandasai
