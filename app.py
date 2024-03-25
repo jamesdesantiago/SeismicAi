@@ -127,18 +127,17 @@ if start_time and end_time:
         binned_df = bin_data(filtered_df, 50, 50)
         simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
 
-df_string = df.to_string()
-
-# Update chat history with dataframe summary for the first interaction
-if not st.session_state.chat_history:
-    df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
-    st.session_state.chat_history.append({"role": "system", "content": df_summary})
-
-# Display chat history
-for message in st.session_state.chat_history:
-    st.chat_message(message["role"]).write(message["content"])
 
 with st.sidebar:
+    # Update chat history with dataframe summary for the first interaction
+    if not st.session_state.chat_history:
+        df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
+        st.session_state.chat_history.append({"role": "system", "content": df_summary})
+
+    # Display chat history
+    for message in st.session_state.chat_history:
+        st.chat_message(message["role"]).write(message["content"])
+
     # Chat input
     user_input = st.chat_input("Ask me about the seismic data...")
 
