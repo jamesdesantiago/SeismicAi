@@ -64,6 +64,49 @@ def simple_plot_earthquake_data(df, start_time, end_time):
                          hover_data=['most_recent_date'])
     st.plotly_chart(fig)
 
+def summarize_df_for_chat(df):
+    if df.empty:
+        return "The dataset is currently empty."
+
+    # Basic statistics
+    total_events = len(df)
+    min_magnitude = df['magnitude'].min()
+    max_magnitude = df['magnitude'].max()
+    avg_magnitude = df['magnitude'].mean()
+
+    # Geographical spread
+    min_latitude, max_latitude = df['latitude'].min(), df['latitude'].max()
+    min_longitude, max_longitude = df['longitude'].min(), df['longitude'].max()
+
+    # Trend analysis over time - simple approach considering linear trends
+    df_sorted = df.sort_values(by='date_time')
+    df['date'] = pd.to_datetime(df['date_time']).dt.date
+    daily_counts = df.groupby('date').size()
+    trend_direction = "increasing" if daily_counts.iloc[-1] - daily_counts.iloc[0] > 0 else "decreasing"
+    
+    # Magnitude distribution
+    magnitude_distribution = df['magnitude'].value_counts(bins=5).sort_index()
+
+    # Assembling the summary
+    summary = (
+        f"The dataset contains {total_events} seismic events. "
+        f"Magnitudes range from {min_magnitude} to {max_magnitude}, with an average magnitude of {avg_magnitude:.2f}. "
+        f"Geographically, the events span from latitude {min_latitude} to {max_latitude} and longitude {min_longitude} to {max_longitude}. "
+        f"The number of daily seismic events is {trend_direction}. "
+        "Magnitude distribution: "
+    )
+
+    # Adding magnitude distribution to the summary
+    for interval, count in magnitude_distribution.iteritems():
+        summary += f"\n - {interval}: {count} events"
+
+    return summary
+
+# Initialize chat and data
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
+    df = None  # Placeholder for your dataframe
+
 # Streamlit UI
 st.title("Seismic AI")
 
@@ -82,21 +125,29 @@ if start_time and end_time:
         binned_df = bin_data(filtered_df, 50, 50)
         simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+# Update chat history with dataframe summary for the first interaction
+if not st.session_state.chat_history:
+    df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
+    st.session_state.chat_history.append({"role": "system", "content": df_summary})
 
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
+# Display chat history
+for message in st.session_state.chat_history:
+    st.chat_message(message["role"]).write(message["content"])
 
-if prompt := st.chat_input():
-    if not st.secrets['openai_api_key']:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
+# Chat input
+user_input = st.chat_input("Ask me anything about the seismic data...")
 
-    client = OpenAI(api_key=st.secrets['openai_api_key'])
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
-    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
-    msg = response.choices[0].message.content
-    st.session_state.messages.append({"role": "assistant", "content": msg})
-    st.chat_message("assistant").write(msg)
+if user_input:
+    # Update chat history with user input
+    st.session_state.chat_history.append({"role": "user", "content": user_input})
+    
+    # Call OpenAI API with the current chat history including the dataframe summary
+    # Assume 'client' is already initialized with your OpenAI API key
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.chat_history]
+    )
+    
+    # Extract response and update chat history
+    ai_response = response.choices[0].message.content
+    st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
