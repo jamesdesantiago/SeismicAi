@@ -132,36 +132,30 @@ if start_time and end_time:
         binned_df = bin_data(filtered_df, 50, 50)
         simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
 
-# Sidebar for chat functionality
 with st.sidebar:
-    st.header("Seismic Chat")
-    if 'chat_history' not in st.session_state:
-        st.session_state.chat_history = [{"role": "system", "content": "Welcome to Seismic AI Chat! Ask me anything about the seismic data..."}]
-    
+    # Update chat history with dataframe summary for the first interaction
+    if not st.session_state.chat_history:
+        df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
+        st.session_state.chat_history.append({"role": "system", "content": df_summary})
+
     # Display chat history
     for message in st.session_state.chat_history:
         st.chat_message(message["role"]).write(message["content"])
 
     # Chat input
-    user_input = st.chat_input("Type your question here...")
+    user_input = st.chat_input("Ask me anything about the seismic data...")
 
-    # Process user input
     if user_input:
-        # Add user input to chat history
+        # Update chat history with user input
         st.session_state.chat_history.append({"role": "user", "content": user_input})
         
-        # Check if 'df' is available and not empty for processing
-        if 'df' in globals() and not df.empty:
-            # Craft a prompt based on user input and data summary
-            prompt = user_input  # Modify this according to your logic
-            # Call OpenAI API with the prompt
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.chat_history]
-            )
-            # Extract response and update chat history
-            ai_response = response.choices[0].message.content
-            st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
-        else:
-            # Handle case where 'df' is not ready or empty
-            st.session_state.chat_history.append({"role": "assistant", "content": "Data is not available. Please select a valid date range."})
+        # Call OpenAI API with the current chat history including the dataframe summary
+        # Assume 'client' is already initialized with your OpenAI API key
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.chat_history]
+        )
+        
+        # Extract response and update chat history
+        ai_response = response.choices[0].message.content
+        st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
