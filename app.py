@@ -160,3 +160,5 @@ with st.sidebar:
         # Extract response and update chat history
         ai_response = response.choices[0].message.content
         st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
+
+st.caption("Data source: U.S. Geological Survey (USGS) Earthquake Hazards Program")
