@@ -58,7 +58,7 @@ def simple_plot_earthquake_data(df, start_time, end_time):
                          title=title,
                          color_continuous_scale=custom_color_scale,
                          size='magnitude',
-                         size_max=20,
+                         size_max=100,
                          projection='orthographic',
                          hover_data=['most_recent_date'])
     st.plotly_chart(fig)
