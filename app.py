@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import plotly.express as px
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 from openai import OpenAI
 
@@ -112,12 +112,17 @@ if 'chat_history' not in st.session_state:
 # Streamlit UI
 st.title("Seismic AI")
 
+# Calculate 1 week ago from today
+one_week_ago = datetime.now() - timedelta(days=7)
+# Set today's date
+today = datetime.now()
+
 col1, col2 = st.columns(2)
 with col1:
-    start_time = st.date_input("Start Date", value=pd.to_datetime("2023-09-01"))
+    start_time = st.date_input("Start Date", value=one_week_ago)
 
 with col2:
-    end_time = st.date_input("End Date", value=pd.to_datetime("2023-09-13"))
+    end_time = st.date_input("End Date", value=today)
 
 if start_time and end_time:
     df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
