@@ -39,7 +39,7 @@ def fetch_seismic_data(start_time, end_time):
 def bin_data(df, lat_bins, lon_bins):
     df['latbin'] = pd.cut(df['latitude'], bins=np.linspace(min(df['latitude']), max(df['latitude']), lat_bins))
     df['lonbin'] = pd.cut(df['longitude'], bins=np.linspace(min(df['longitude']), max(df['longitude']), lon_bins))
-    binned_df = df.groupby(['latbin', 'lonbin']).agg(
+    binned_df = df.groupby(['latbin', 'lonbin'], observed=False).agg(
         latitude=pd.NamedAgg(column='latitude', aggfunc='median'),
         longitude=pd.NamedAgg(column='longitude', aggfunc='median'),
         magnitude=pd.NamedAgg(column='magnitude', aggfunc='median'),
@@ -80,7 +80,7 @@ def summarize_df_for_chat(df):
 
     # Trend analysis over time - simple approach considering linear trends
     df_sorted = df.sort_values(by='date_time')
-    df['date'] = pd.to_datetime(df['date_time']).dt.date
+    df.loc[:, 'date'] = pd.to_datetime(df['date_time']).dt.date
     daily_counts = df.groupby('date').size()
     trend_direction = "increasing" if daily_counts.iloc[-1] - daily_counts.iloc[0] > 0 else "decreasing"
     
@@ -97,7 +97,7 @@ def summarize_df_for_chat(df):
     )
 
     # Adding magnitude distribution to the summary
-    for interval, count in magnitude_distribution.iteritems():
+    for interval, count in magnitude_distribution.items():
         summary += f"\n - {interval}: {count} events"
 
     return summary
