@@ -128,7 +128,7 @@ with col2:
 if start_time and end_time:
     df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
     # Initiate pandasai instance
-    pandas_ai = SmartDataframe(df, config={"llm": llm})
+    pandas_ai = SmartDataframe(df)
 
     if df is not None:
         filtered_df = df[df['magnitude'] > 4]
@@ -148,11 +148,7 @@ with st.sidebar:
         if prompt:
             # call pandas_ai.run(), passing dataframe and prompt
             with st.spinner("Generating response..."):
-                # Before calling pandas_ai.run(df, prompt), check if 'run' method exists in pandas_ai
-                if hasattr(pandas_ai, 'run'):
-                    st.write(pandas_ai.run(df, prompt))
-                else:
-                    st.error("The 'run' method does not exist in pandas_ai.")
+                st.write(pandas_ai.chat(prompt))
         else:
             st.warning("Please enter a prompt.")
 
