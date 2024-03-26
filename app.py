@@ -131,6 +131,7 @@ query_engine = SmartDataframe(df, config={"llm": llm})
 if df is not None and not df.empty:
     filtered_df = df[df['magnitude'] > 4]
     binned_df = bin_data(filtered_df, 50, 50)
+    st.write("Note: The map below shows the earthquakes with magnitude greater than 4.0.")
     simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
 
     general_summary = summarize_df_for_chat(df)
@@ -141,8 +142,8 @@ with st.sidebar:
     st.header("Seismic Chat 🗨️")
     st.write("Ask questions about the seismic data. Here are some examples of questions you can ask:")
     example_queries = [
-        "What are the top 10 places with the largest earthquakes?",
-        "What country had the most earthquakes?",
+        "What are the top 10 places with the largest magnitude earthquakes?",
+        "What places had the most earthquakes?",
         "Chart the number of earthquakes by places.",
         "What is the distribution of magnitudes?",
         "Where did the most recent earthquake occur?"
