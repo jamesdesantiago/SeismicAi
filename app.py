@@ -107,11 +107,6 @@ def summarize_df_for_chat(df):
 
 llm = OpenAI(api_token=st.secrets["openai_api_key"])
 
-# Initialize chat and data
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = []
-    df = None  # Placeholder for your dataframe
-
 # Streamlit UI
 st.title("SeismicAI")
 
