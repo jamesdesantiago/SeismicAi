@@ -113,6 +113,13 @@ if 'chat_history' not in st.session_state:
 # Streamlit UI
 st.title("Seismic AI")
 
+st.expander("About this app", expanded=True)
+st.write(
+    "This app uses the U.S. Geological Survey (USGS) Earthquake Hazards Program API to fetch seismic data. "
+    "The data is then analyzed using PandasAI to answer questions and provide insights. "
+    "You can ask questions about the data in the chat window and visualize the earthquake data on the map."
+)
+
 # Calculate 1 week ago from today
 one_week_ago = datetime.now() - timedelta(days=7)
 # Set today's date
@@ -128,28 +135,31 @@ with col2:
 if start_time and end_time:
     df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
     # Initiate pandasai instance
-    pandas_ai = SmartDataframe(df)
+    query_engine = SmartDataframe(df, config={"llm": llm})
 
     if df is not None:
         filtered_df = df[df['magnitude'] > 4]
         binned_df = bin_data(filtered_df, 50, 50)
         simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
     
-with st.sidebar:
-    # Update chat history with dataframe summary for the first interaction
-    if not st.session_state.chat_history:
-        df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
+# Update chat history with dataframe summary for the first interaction
+if not st.session_state.chat_history:
+    df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
 
-    # Chat input
-    prompt = st.text_area("Ask me about the seismic data...")
+st.expander("General Summary", expanded=True):
+st.write(df_summary)
 
-    # Generate output
-    if st.button("Ask a question"):
-        if prompt:
-            # call pandas_ai.run(), passing dataframe and prompt
-            with st.spinner("Generating response..."):
-                st.write(pandas_ai.chat(prompt))
-        else:
-            st.warning("Please enter a prompt.")
+# Chat input
+prompt = st.text_area("Ask me about the seismic data...")
+
+# Generate output
+if st.button("Ask a question"):
+    if prompt:
+        # call pandas_ai.run(), passing dataframe and prompt
+        with st.spinner("Generating response..."):
+            st.caption("Example prompts: 'What is the average magnitude of the earthquakes?', 'What are the top 10 places with largest earthquakes?', 'What country had the most earthquakes?', 'Chart the number of earthquakes by places', 'What is the distribution of magnitudes?', 'Where did the most recent earthquake occur?'")
+            st.write(query_engine.chat(query))
+    else:
+        st.warning("Please enter a prompt.")
 
 st.caption("Data source: U.S. Geological Survey (USGS) Earthquake Hazards Program")
