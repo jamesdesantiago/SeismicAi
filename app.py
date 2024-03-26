@@ -7,7 +7,7 @@ import numpy as np
 from pandasai import SmartDataframe
 from pandasai.llm import OpenAI
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="SeismicAI")
 
 # Define the function to fetch seismic data
 def fetch_seismic_data(start_time, end_time):
@@ -108,7 +108,7 @@ def summarize_df_for_chat(df):
 llm = OpenAI(api_token=st.secrets["openai_api_key"])
 
 # Streamlit UI
-st.title("SeismicAI")
+st.title("SeismicAI: Earthquake Data Visualization & Analysis 🌍")
 
 with st.container():
     st.markdown(
@@ -123,6 +123,7 @@ with st.container():
 start_time = st.sidebar.date_input("Start Date", value=datetime.now() - timedelta(days=7))
 end_time = st.sidebar.date_input("End Date", value=datetime.now(), max_value=datetime.now())
 
+
 df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
 
 # Main area for data visualization
@@ -136,10 +137,6 @@ if df is not None and not df.empty:
 
 # Sidebar for date input and chat
 with st.sidebar:
-    st.header("Query Parameters")
-    start_time = st.date_input("Start Date", value=datetime.now() - timedelta(days=7))
-    end_time = st.date_input("End Date", value=datetime.now(), max_value=datetime.now())
-
     st.header("Seismic Chat 🗨️")
     prompt = st.text_area("Ask me about the seismic data...", height=100)
     if st.button("Ask"):
