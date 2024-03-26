@@ -148,7 +148,11 @@ with st.sidebar:
         if prompt:
             # call pandas_ai.run(), passing dataframe and prompt
             with st.spinner("Generating response..."):
-                st.write(pandas_ai.run(df, prompt))
+                # Before calling pandas_ai.run(df, prompt), check if 'run' method exists in pandas_ai
+                if hasattr(pandas_ai, 'run'):
+                    st.write(pandas_ai.run(df, prompt))
+                else:
+                    st.error("The 'run' method does not exist in pandas_ai.")
         else:
             st.warning("Please enter a prompt.")
 
