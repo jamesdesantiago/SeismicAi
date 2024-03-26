@@ -7,7 +7,7 @@ import numpy as np
 from pandasai import SmartDataframe
 from pandasai.llm import OpenAI
 
-st.set_page_config(layout="wide", page_title="SeismicAI")
+st.set_page_config(layout="wide", page_title="SeismicAI", page_icon="assets/favicon.png",)
 
 # Define the function to fetch seismic data
 def fetch_seismic_data(start_time, end_time):
@@ -144,8 +144,6 @@ with st.sidebar:
     example_queries = [
         "What are the top 10 places with the largest magnitude earthquakes?",
         "What places had the most earthquakes?",
-        "Chart the number of earthquakes by places.",
-        "What is the distribution of magnitudes?",
         "Where did the most recent earthquake occur?"
     ]
 
@@ -167,4 +165,13 @@ with st.sidebar:
         else:
             st.warning("Please enter a question or select an example query.")
 
+
+# Credits
 st.caption("Data source: U.S. Geological Survey (USGS) Earthquake Hazards Program")
+
+st.markdown("""
+    <hr style="border:2px solid gray"> </hr>
+    <p style="text-align: center;">
+        Created by <a href="https://https://github.com/jamesdesantiago" target="_blank">James De Santiago</a>
+    </p>
+    """, unsafe_allow_html=True)
