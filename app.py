@@ -149,7 +149,7 @@ with st.sidebar:
     ]
 
     # Display example queries using a select box for better user experience
-    query_example = st.selectbox("Example queries", ["Choose an example query..."] + example_queries)
+    query_example = st.sidebar.selectbox("Example queries", ["Choose an example query..."] + example_queries)
 
     user_query = st.text_area("Ask me about the seismic data...", height=100)
 
