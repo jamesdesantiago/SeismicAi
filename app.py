@@ -111,17 +111,19 @@ if 'chat_history' not in st.session_state:
     df = None  # Placeholder for your dataframe
 
 # Streamlit UI
-st.title("Seismic AI")
+st.title("SeismicAI")
 
 st.expander("About this app", expanded=True)
 st.write(
     "This app uses the U.S. Geological Survey (USGS) Earthquake Hazards Program API to fetch seismic data. "
     "The data is then analyzed using PandasAI to answer questions and provide insights. "
     "You can ask questions about the data in the chat window and visualize the earthquake data on the map."
+    "Note: SeismicAI does not forecast earthquakes. It is strictly for educational purposes."
 )
 
 # Calculate 1 week ago from today
 one_week_ago = datetime.now() - timedelta(days=7)
+
 # Set today's date
 today = datetime.now()
 
@@ -146,7 +148,7 @@ if start_time and end_time:
 if not st.session_state.chat_history:
     df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
 
-st.expander("General Summary", expanded=True):
+st.expander("General Summary", expanded=True)
 st.write(df_summary)
 
 # Chat input
@@ -158,7 +160,7 @@ if st.button("Ask a question"):
         # call pandas_ai.run(), passing dataframe and prompt
         with st.spinner("Generating response..."):
             st.caption("Example prompts: 'What is the average magnitude of the earthquakes?', 'What are the top 10 places with largest earthquakes?', 'What country had the most earthquakes?', 'Chart the number of earthquakes by places', 'What is the distribution of magnitudes?', 'Where did the most recent earthquake occur?'")
-            st.write(query_engine.chat(query))
+            st.write(query_engine.chat(prompt))
     else:
         st.warning("Please enter a prompt.")
 
