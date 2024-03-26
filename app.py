@@ -7,6 +7,8 @@ import numpy as np
 from pandasai import SmartDataframe
 from pandasai.llm import OpenAI
 
+st.set_page_config(layout="wide")
+
 # Define the function to fetch seismic data
 def fetch_seismic_data(start_time, end_time):
     url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -113,55 +115,40 @@ if 'chat_history' not in st.session_state:
 # Streamlit UI
 st.title("SeismicAI")
 
-st.expander("About this app", expanded=True)
-st.write(
-    "This app uses the U.S. Geological Survey (USGS) Earthquake Hazards Program API to fetch seismic data. "
-    "The data is then analyzed using PandasAI to answer questions and provide insights. "
-    "You can ask questions about the data in the chat window and visualize the earthquake data on the map."
-    "Note: SeismicAI does not forecast earthquakes. It is strictly for educational purposes."
-)
+with st.container():
+    st.markdown(
+        """
+        This app uses the U.S. Geological Survey (USGS) Earthquake Hazards Program API to fetch seismic data. 
+        The data is then analyzed to provide insights. You can ask questions about the data in the chat window and visualize the earthquake data on the map.
+        **Note**: SeismicAI does not forecast earthquakes. It is strictly for educational and informational purposes.
+        """
+    )
 
-# Calculate 1 week ago from today
-one_week_ago = datetime.now() - timedelta(days=7)
+# Sidebar for date input and chat
+with st.sidebar:
+    st.header("Query Parameters")
+    start_time = st.date_input("Start Date", value=datetime.now() - timedelta(days=7))
+    end_time = st.date_input("End Date", value=datetime.now(), max_value=datetime.now())
 
-# Set today's date
-today = datetime.now()
+    st.header("Seismic Chat 🗨️")
+    prompt = st.text_area("Ask me about the seismic data...", height=100)
+    if st.button("Ask"):
+        if prompt:
+            # Assuming you have a function to handle the prompt and return a response
+            response = "Example response to the user's question."
+            st.text_area("Response:", value=response, height=100, disabled=True)
+        else:
+            st.warning("Please enter a question.")
 
-col1, col2 = st.columns(2)
-with col1:
-    start_time = st.date_input("Start Date", value=one_week_ago)
+# Main area for data visualization
+df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
+if df is not None and not df.empty:
+    filtered_df = df[df['magnitude'] > 4]
+    binned_df = bin_data(filtered_df, 50, 50)
+    fig = simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
+    st.plotly_chart(fig, use_container_width=True)  # Make the plot use the full width
 
-with col2:
-    end_time = st.date_input("End Date", value=today)
-
-if start_time and end_time:
-    df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
-    # Initiate pandasai instance
-    query_engine = SmartDataframe(df, config={"llm": llm})
-
-    if df is not None:
-        filtered_df = df[df['magnitude'] > 4]
-        binned_df = bin_data(filtered_df, 50, 50)
-        simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
-    
-# Update chat history with dataframe summary for the first interaction
-if not st.session_state.chat_history:
-    df_summary = summarize_df_for_chat(df) if df is not None else "Data is not available."
-
-st.expander("General Summary", expanded=True)
-st.write(df_summary)
-
-# Chat input
-prompt = st.text_area("Ask me about the seismic data...")
-
-# Generate output
-if st.button("Ask a question"):
-    if prompt:
-        # call pandas_ai.run(), passing dataframe and prompt
-        with st.spinner("Generating response..."):
-            st.caption("Example prompts: 'What is the average magnitude of the earthquakes?', 'What are the top 10 places with largest earthquakes?', 'What country had the most earthquakes?', 'Chart the number of earthquakes by places', 'What is the distribution of magnitudes?', 'Where did the most recent earthquake occur?'")
-            st.write(query_engine.chat(prompt))
-    else:
-        st.warning("Please enter a prompt.")
+    general_summary = summarize_df_for_chat(df)
+    st.expander("General Summary 📊", expanded=True).write(general_summary)
 
 st.caption("Data source: U.S. Geological Survey (USGS) Earthquake Hazards Program")
