@@ -125,6 +125,7 @@ end_time = st.sidebar.date_input("End Date", value=datetime.now(), max_value=dat
 
 
 df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
+query_engine = SmartDataframe(df, config={"llm": llm})
 
 # Main area for data visualization
 if df is not None and not df.empty:
@@ -141,7 +142,6 @@ with st.sidebar:
     prompt = st.text_area("Ask me about the seismic data...", height=100)
     if st.button("Ask"):
         if prompt:
-            query_engine = SmartDataframe(df, config={"llm": llm})
             # Assuming you have a function to handle the prompt and return a response
             response = query_engine.chat(prompt)
             st.text_area("Response:", value=response, height=100, disabled=True)
