@@ -119,6 +119,21 @@ with st.container():
         """
     )
 
+# Fetch data
+start_time = st.sidebar.date_input("Start Date", value=datetime.now() - timedelta(days=7))
+end_time = st.sidebar.date_input("End Date", value=datetime.now(), max_value=datetime.now())
+
+df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
+
+# Main area for data visualization
+if df is not None and not df.empty:
+    filtered_df = df[df['magnitude'] > 4]
+    binned_df = bin_data(filtered_df, 50, 50)
+    simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
+
+    general_summary = summarize_df_for_chat(df)
+    st.expander("General Summary 📊", expanded=True).write(general_summary)
+
 # Sidebar for date input and chat
 with st.sidebar:
     st.header("Query Parameters")
@@ -135,15 +150,5 @@ with st.sidebar:
             st.text_area("Response:", value=response, height=100, disabled=True)
         else:
             st.warning("Please enter a question.")
-
-# Main area for data visualization
-df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strftime('%Y-%m-%dT%H:%M:%S'))
-if df is not None and not df.empty:
-    filtered_df = df[df['magnitude'] > 4]
-    binned_df = bin_data(filtered_df, 50, 50)
-    simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
-
-    general_summary = summarize_df_for_chat(df)
-    st.expander("General Summary 📊", expanded=True).write(general_summary)
 
 st.caption("Data source: U.S. Geological Survey (USGS) Earthquake Hazards Program")
