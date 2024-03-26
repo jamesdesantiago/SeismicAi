@@ -139,13 +139,31 @@ if df is not None and not df.empty:
 # Sidebar for date input and chat
 with st.sidebar:
     st.header("Seismic Chat 🗨️")
-    prompt = st.text_area("Ask me about the seismic data...", height=100)
+    st.write("Ask questions about the seismic data. Here are some examples of questions you can ask:")
+    example_queries = [
+        "What are the top 10 places with the largest earthquakes?",
+        "What country had the most earthquakes?",
+        "Chart the number of earthquakes by places.",
+        "What is the distribution of magnitudes?",
+        "Where did the most recent earthquake occur?"
+    ]
+
+    # Display example queries using a select box for better user experience
+    query_example = st.selectbox("Example queries", ["Choose an example query..."] + example_queries)
+
+    user_query = st.text_area("Ask me about the seismic data...", height=100)
+
+    final_query = user_query if user_query else query_example if query_example != "Choose an example query..." else ""
+
     if st.button("Ask"):
-        if prompt:
-            # Assuming you have a function to handle the prompt and return a response
-            response = query_engine.chat(prompt)
-            st.text_area("Response:", value=response, height=100, disabled=True)
+        if final_query:
+            try:
+                # Assuming you have a function `process_query` to handle the chat functionality
+                response = query_engine.chat(final_query)
+                st.text_area("Response:", value=response, height=100, disabled=True)
+            except Exception as e:
+                st.error(f"Sorry, there was a problem processing your query: {str(e)}")
         else:
-            st.warning("Please enter a question.")
+            st.warning("Please enter a question or select an example query.")
 
 st.caption("Data source: U.S. Geological Survey (USGS) Earthquake Hazards Program")
