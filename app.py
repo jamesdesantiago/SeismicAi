@@ -149,9 +149,9 @@ with st.sidebar:
     ]
 
     # Display example queries using a select box for better user experience
-    query_example = st.sidebar.selectbox("Example queries", ["Choose an example query..."] + example_queries)
+    query_example = st.sidebar.selectbox("Pick a query", ["Choose an example query..."] + example_queries)
 
-    user_query = st.text_area("Ask me about the seismic data...", height=100)
+    user_query = st.text_area("or... ask me about the seismic data...", height=100)
 
     final_query = user_query if user_query else query_example if query_example != "Choose an example query..." else ""
 
@@ -160,7 +160,7 @@ with st.sidebar:
             try:
                 # Assuming you have a function `process_query` to handle the chat functionality
                 response = query_engine.chat(final_query)
-                st.text_area("Response:", value=response, height=100, disabled=True)
+                st.write(response)
             except Exception as e:
                 st.error(f"Sorry, there was a problem processing your query: {str(e)}")
         else:
