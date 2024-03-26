@@ -134,8 +134,9 @@ with st.sidebar:
     prompt = st.text_area("Ask me about the seismic data...", height=100)
     if st.button("Ask"):
         if prompt:
+            query_engine = SmartDataframe(df, config={"llm": llm})
             # Assuming you have a function to handle the prompt and return a response
-            response = "Example response to the user's question."
+            response = query_engine.chat(prompt)
             st.text_area("Response:", value=response, height=100, disabled=True)
         else:
             st.warning("Please enter a question.")
@@ -145,8 +146,7 @@ df = fetch_seismic_data(start_time.strftime('%Y-%m-%dT%H:%M:%S'), end_time.strft
 if df is not None and not df.empty:
     filtered_df = df[df['magnitude'] > 4]
     binned_df = bin_data(filtered_df, 50, 50)
-    fig = simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
-    st.plotly_chart(fig, use_container_width=True)  # Make the plot use the full width
+    simple_plot_earthquake_data(binned_df, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
 
     general_summary = summarize_df_for_chat(df)
     st.expander("General Summary 📊", expanded=True).write(general_summary)
